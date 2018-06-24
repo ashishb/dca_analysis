@@ -35,8 +35,9 @@ class AlphaVantage:
             cmd = "curl 'https://www.alphavantage.co/query?function=TIME_SERIES_DAILY&outputsize=compact&symbol=%s&apikey=<api_key>' > %s" % (
                 security_name, file_name)
             raise AssertionError(
-                "File \"%s\" does not exist, first get the Alpha Vantage key and then generate the file with command\n \"%s\"" % (
-                    file_name, cmd))
+                'File \"%s\" does not exist, first get the Alpha Vantage key at '
+                'https://www.alphavantage.co/support/#api-keyand then generate the file '
+                'with command\n \"%s\"' % (file_name, cmd))
         json_data = json.load(open(file_name, 'r'))
         return json_data.get("Time Series (Daily)")
 
