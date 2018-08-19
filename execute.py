@@ -6,6 +6,7 @@ from dateutil import relativedelta
 import docopt
 import json
 import os
+import sys
 
 _verbose = False
 
@@ -20,8 +21,8 @@ Usage:
     execute.py [options] <security_name>
 
 Options:
-    -s, --start_date=<start_date>            Start date of the investing
-    -e, --end_date=<end_date>                End date of the investing
+    -s, --start_date=<start_date>            Start date of the investing (YYYY-mm-dd format)
+    -e, --end_date=<end_date>                End date of the investing (YYYY-mm-dd format)
     -v, --verbose                 Verbose mode
 """
 
@@ -53,7 +54,6 @@ class AlphaVantage:
 
 
 def get_new_date(current_date, strategy):
-    new_date = None
     if strategy == _DCA_DAILY:
         new_date = current_date + relativedelta.relativedelta(days=+1)
     elif strategy == _DCA_WEEKLY:
@@ -146,23 +146,33 @@ def get_string(strategy):
 
 def main():
     global _verbose
-    args = docopt.docopt(USAGE_STRING, version='1.0.0rc2')
+    args = docopt.docopt(USAGE_STRING, version='1.0.0')
     security_name = args['<security_name>']
 
     _verbose = True if args['--verbose'] else False
 
     if not args['--start_date']:
-        raise AssertionError("start_date should be provided")
+        raise AssertionError("start_date (YYYY-mm-dd) should be provided")
 
     if not args['--end_date']:
-        raise AssertionError("end_date should be provided")
+        raise AssertionError("end_date (YYYY-mm-dd) should be provided")
 
     start_date = datetime.strptime(args['--start_date'], '%Y-%m-%d')
     end_date = datetime.strptime(args['--end_date'], '%Y-%m-%d')
 
-    for strategy in [
-        _DCA_DAILY, _DCA_WEEKLY, _DCA_MONTHLY,
-        _DCA_YEARLY]:
+    if start_date > datetime.now():
+        print("Start  date cannot be more than current date")
+        sys.exit(1)
+
+    if end_date > datetime.now():
+        print("End date cannot be more than current date")
+        sys.exit(1)
+
+    if start_date > end_date:
+        print("Start date cannot be more than end date")
+        sys.exit(1)
+
+    for strategy in [_DCA_DAILY, _DCA_WEEKLY, _DCA_MONTHLY, _DCA_YEARLY]:
         if _verbose:
             print("Analyzing \"%s\" security for \"%s\" investment strategy from %s to %s" %
                   (security_name, strategy, start_date, end_date))
